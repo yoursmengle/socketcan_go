@@ -59,6 +59,8 @@ int rcvFiltersSet(int canfd, const uint canId, const uint filterType)
 import "C"
 
 import (
+	"fmt"
+	"unsafe"
 	"errors"
 	"golang.org/x/sys/unix"
 )
