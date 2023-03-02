@@ -1,5 +1,5 @@
-module github.com/yoursmengle/socketcan_go
-//module gitee.com/yoursmengle/socketcan_go
+//module github.com/yoursmengle/socketcan_go
+module gitee.com/yoursmengle/socketcan_go
 
 go 1.20
 
