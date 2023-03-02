@@ -23,9 +23,9 @@ import (
 
 func main() {
 	fmt.Println("can1 start...")
-	sock_can, err := socketcan.NewCanItf("can1")
+	sock_can, err := socketcan.NewCanItf("can1")  // can0 or can1
 	if err != nil {
-		g_str_disp.Add(fmt.Sprintln("task_can1 init error:", err))
+        fmt.Println("new can1 error:", err)
 		return
 	}
 	defer sock_can.Close()
@@ -39,13 +39,14 @@ func main() {
 	//step2, create receive thread
 	go can1_recv(sock_can)
 
-	//step3, send data periodically
+	//step3, send data periodically 10ms
 	ticker := time.NewTicker(10 * time.Millisecond)
 	for {
 		<-ticker.C // tick 10ms
 
+        // fill can frame data to send
 		frame, need_send := fill_can1_frame()
-		if !need_send {
+		if ! need_send {
 			continue
 		}
 
@@ -60,18 +61,20 @@ func main() {
 // can1 receive thread
 func can1_recv(sock_can *socketcan.RawInterface) {
 	for {
-		// wait for receiving one can frame
+		// waiting for receiving one can frame
 		frame, err := sock_can.Receive()
 		if err != nil {
             fmt.Println("recv error:", err)
             continue
 		}
 
+        // process can frame if received data
 		proc_can1_frame(&frame)
 	}
 }
 
-// receive can frame id list 
+// receive filter
+// can frame id list 
 var recv_ids1 []uint32 = []uint32{
 	0x0cf00400 | socketcan.CAN_EFF_FLAG,  // ext id 
     0x0cf00401 | socketcan.CAN_EFF_FLAG,  // ext id
