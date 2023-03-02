@@ -1,4 +1,4 @@
-module github.com/yoursmengle/socketcan_go
+module socketcan_go
 
 go 1.19
 
