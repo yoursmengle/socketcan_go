@@ -3,6 +3,7 @@
 forked from https://github.com/atuleu/golang-socketcan
 1) add filter support
 2) only working on linux
+3) need cgo support
 
 ## Install
 
