@@ -6,20 +6,21 @@ package socketcan
 import "C"
 
 import (
-	"fmt"
-	"unsafe"
 	"errors"
+	"fmt"
 	"os/exec"
+	"unsafe"
+
 	"golang.org/x/sys/unix"
 )
 
 const (
-	BAUD_1M = 1000000
+	BAUD_1M   = 1000000
 	BAUD_500K = 500000
 	BAUD_250K = 250000
 	BAUD_125K = 125000
 	BAUD_100K = 100000
-	BAUD_50K = 50000
+	BAUD_50K  = 50000
 )
 
 type RawInterface struct {
@@ -76,7 +77,7 @@ func (itf *RawInterface) Close() error {
 	return unix.Close(itf.fd)
 }
 
-func (itf *RawInterface) Send(f CanFrame) error {
+func (itf *RawInterface) Send(f *CanFrame) error {
 	frameBytes := make([]byte, 16)
 	f.putID(frameBytes)
 	frameBytes[4] = f.Dlc
@@ -85,19 +86,19 @@ func (itf *RawInterface) Send(f CanFrame) error {
 	return err
 }
 
-func (itf *RawInterface) Receive() (CanFrame, error) {
+func (itf *RawInterface) Receive() (*CanFrame, error) {
 	f := CanFrame{Data: make([]byte, 8)}
 	frameBytes := make([]byte, 16)
 	_, err := unix.Read(itf.fd, frameBytes)
 	if err != nil {
-		return f, err
+		return &f, err
 	}
 
 	f.getID(frameBytes)
 	f.Dlc = frameBytes[4]
 	copy(f.Data, frameBytes[8:])
 
-	return f, nil
+	return &f, nil
 }
 
 func (itf *RawInterface) up() error {
@@ -126,7 +127,7 @@ func (itf *RawInterface) SetBaud(baud uint32) error {
 		return err
 	}
 
-    exec.Command("ip", "link", "set", itf.name, "type", "can", "bitrate", fmt.Sprintf("%d", baud)).Run()
+	exec.Command("ip", "link", "set", itf.name, "type", "can", "bitrate", fmt.Sprintf("%d", baud)).Run()
 	if err != nil {
 		return err
 	}
@@ -142,7 +143,7 @@ func (itf *RawInterface) SetTxQueueLen(size uint32) error {
 		return err
 	}
 
-    exec.Command("ifconfig", itf.name, "txqueuelen", fmt.Sprintf("%d", size)).Run()
+	exec.Command("ifconfig", itf.name, "txqueuelen", fmt.Sprintf("%d", size)).Run()
 	if err != nil {
 		return err
 	}

@@ -10,7 +10,7 @@ type CanFrame struct {
 	RTR      bool
 }
 
-func (f CanFrame) putID(buf []byte) {
+func (f *CanFrame) putID(buf []byte) {
 	if f.Extended == true {
 		f.ID &= CAN_EFF_MASK
 		f.ID |= CAN_EFF_FLAG
