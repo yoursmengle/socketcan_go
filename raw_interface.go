@@ -119,6 +119,14 @@ func (itf *RawInterface) AddfilterPass(recv_ids []uint32, len uint32) error {
 	return errors.New("can filter failed")
 }
 
+func (itf *RawInterface) AddfilterId(id uint, len uint) error {
+	succ := C.rcvFiltersID(C.int(itf.fd), C.uint(id), C.uint(len))
+	if succ == 0 {
+		return nil
+	}
+	return errors.New("can filter failed")
+}
+
 func (itf *RawInterface) SetBaud(baud uint32) error {
 	var err error
 

@@ -50,3 +50,21 @@ int rcvFiltersSet(int canfd, const void *recv_ids, const uint len, const uint fi
     setsockopt(canfd, SOL_CAN_RAW, CAN_RAW_FILTER, &rfilter, sizeof(rfilter));
     return 0;
 }
+
+__attribute__((weak))
+int rcvFiltersID(int canfd, const uint id, const uint len)
+{
+    if(canfd <= 0)	
+        return -1;
+
+    if (len < 1 || len > 8)
+        return -1;
+
+    struct can_filter rfilter;
+
+    rfilter.can_id = id;
+    rfilter.can_mask = 2^len - 1;
+
+    setsockopt(canfd, SOL_CAN_RAW, CAN_RAW_FILTER, &rfilter, 1);
+    return 0;
+}
