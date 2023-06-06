@@ -6,9 +6,9 @@ package socketcan
 import "C"
 
 import (
-	"errors"
 	"fmt"
 	"os/exec"
+	"syscall"
 	"unsafe"
 
 	"golang.org/x/sys/unix"
@@ -26,6 +26,11 @@ const (
 type RawInterface struct {
 	fd   int
 	name string
+}
+
+type can_filter struct {
+	can_id   uint32
+	can_mask uint32
 }
 
 func (itf *RawInterface) getIfIndex(ifName string) (int, error) {
@@ -110,21 +115,22 @@ func (itf *RawInterface) down() error {
 }
 
 func (itf *RawInterface) AddfilterPass(recv_ids []uint32, len uint32) error {
-	ptr := unsafe.Pointer(&recv_ids[0])
-	succ := C.rcvFiltersSet(C.int(itf.fd), ptr, C.uint(len), C.CAN_FILTER_PASS)
-	if succ == 0 {
-		return nil
-	}
+	var rfilter can_filter
 
-	return errors.New("can filter failed")
-}
+	for i := uint32(0); i < len; i++ {
+		rfilter.can_id = recv_ids[i]
+		if recv_ids[i]&0x80000000 == 0x80000000 { // ext frame
+			rfilter.can_mask = 0x1FFFFFFF
+		} else {
+			rfilter.can_mask = 0x7FF
+		}
 
-func (itf *RawInterface) AddfilterId(id uint, len uint) error {
-	succ := C.rcvFiltersID(C.int(itf.fd), C.uint(id), C.uint(len))
-	if succ == 0 {
-		return nil
+		err := syscall.SetsockoptInt(int(itf.fd), unix.SOL_CAN_RAW, unix.CAN_RAW_FILTER, &rfilter, 1)
+		if err != nil {
+			return err
+		}
 	}
-	return errors.New("can filter failed")
+	return nil
 }
 
 func (itf *RawInterface) SetBaud(baud uint32) error {
